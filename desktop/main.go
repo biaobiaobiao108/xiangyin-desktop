@@ -104,7 +104,7 @@ func run() error {
 		return fmt.Errorf("后端启动失败，请查看 %s", logFile.Name())
 	}
 	mygo.App.WhenReady(func() {
-		window := mygo.NewWindow(mygo.WindowOptions{Title: "象映笔记", URL: base + "/api/desktop-login?token=" + token, Width: 1280, Height: 820, MinWidth: 760, MinHeight: 520, TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 40})
+		window := mygo.NewWindow(mygo.WindowOptions{Title: "象映笔记", URL: base + "/api/desktop-login?token=" + token, Width: 1280, Height: 820, MinWidth: 760, MinHeight: 520, TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 32})
 		if icon, err := os.ReadFile(filepath.Join(root, "client", "icon-192.png")); err == nil {
 			if err := window.SetIcon(icon); err != nil {
 				fmt.Fprintln(logFile, "设置窗口图标失败:", err)

@@ -1395,10 +1395,10 @@ dialog::backdrop {
   .app-shell.is-focus-mode {
     display: block;
     position: fixed;
-    top: var(--mobile-viewport-top, 0px);
+    top: calc(var(--mobile-viewport-top, 0px) + var(--mygo-titlebar-height, 0px));
     left: 0;
     width: 100%;
-    height: var(--mobile-viewport-height, 100dvh);
+    height: calc(var(--mobile-viewport-height, 100dvh) - var(--mygo-titlebar-height, 0px));
     min-height: 0;
     max-height: none;
     overflow: hidden;
@@ -1420,7 +1420,7 @@ dialog::backdrop {
     pointer-events: none;
   }
   .app-shell[data-mobile-page="editor"] {
-    height: var(--mobile-editor-height, 100dvh);
+    height: calc(var(--mobile-editor-height, 100dvh) - var(--mygo-titlebar-height, 0px));
   }
   .editor-panel.is-focus-mode .editor-header {
     height: 50px;
