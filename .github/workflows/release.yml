@@ -41,6 +41,27 @@ jobs:
           test "v$version" = "$GITHUB_REF_NAME"
       - run: bun install --frozen-lockfile
       - run: bun run build:desktop
+      - name: Smoke test macOS backend
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          resources="$PWD/dist/packages/darwin-arm64/象映笔记.app/Contents/Resources"
+          data_dir="$(mktemp -d)"
+          cd "$resources"
+          HOST=127.0.0.1 PORT=39093 NODE_ENV=production \
+            XIANGYING_USERNAME=ci XIANGYING_PASSWORD=ci-smoke-password \
+            DATABASE_PATH="$data_dir/notes.sqlite" CLIENT_ROOT="$resources/client" \
+            ./backend/server >"$data_dir/server.log" 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true; wait "$pid" 2>/dev/null || true; rm -rf "$data_dir"' EXIT
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:39093/api/health; then exit 0; fi
+            if ! kill -0 "$pid" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          cat "$data_dir/server.log"
+          exit 1
       - name: Package Windows
         if: runner.os == 'Windows'
         shell: pwsh
