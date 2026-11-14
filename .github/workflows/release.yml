@@ -21,8 +21,10 @@ jobs:
         include:
           - os: windows-latest
             platform: windows-amd64
+            artifact: dist/packages/windows-amd64/*-setup-*-amd64.exe
           - os: macos-15
             platform: darwin-arm64
+            artifact: dist/packages/darwin-arm64/*-arm64.dmg
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -62,18 +64,10 @@ jobs:
           done
           cat "$data_dir/server.log"
           exit 1
-      - name: Package Windows
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: Compress-Archive -Path 'dist/packages/windows-amd64/*' -DestinationPath 'dist/xiangyin-windows-amd64.zip'
-      - name: Package macOS
-        if: runner.os == 'macOS'
-        shell: bash
-        run: ditto -c -k --sequesterRsrc --keepParent 'dist/packages/darwin-arm64/象映笔记.app' 'dist/xiangyin-macos-arm64.zip'
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform }}
-          path: dist/xiangyin-*.zip
+          path: ${{ matrix.artifact }}
           if-no-files-found: error
 
   release:
@@ -91,4 +85,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-        run: gh release create "$GITHUB_REF_NAME" artifacts/*.zip --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+        run: gh release create "$GITHUB_REF_NAME" artifacts/* --verify-tag --generate-notes --title "$GITHUB_REF_NAME"

@@ -26,6 +26,6 @@ await run([
   resolve(resources, "backend", process.platform === "win32" ? "server.exe" : "server"),
 ]);
 await run(
-  ["go", "run", "github.com/egoist/mygo/cmd/mygo@v0.9.0", "build", "-skip-installer", "-skip-dmg"],
+  ["go", "run", "github.com/egoist/mygo/cmd/mygo@v0.9.0", "build"],
   resolve(root, "desktop"),
 );
