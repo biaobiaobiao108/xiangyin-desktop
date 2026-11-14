@@ -53,6 +53,7 @@ const CLIENT_ROUTES = new Set(["/", "/app", "/login", "/setup"]);
 const API_RESOURCES = new Set([
   "health",
   "bootstrap",
+  "desktop-login",
   "setup",
   "auth",
   "me",

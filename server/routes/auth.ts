@@ -484,6 +484,32 @@ export async function handleAuthRoute(ctx: RouteContext): Promise<Response | nul
   const { request, url, method, options } = ctx;
   const { database, environment = {}, clientAddress } = options;
 
+  if (method === "GET" && url.pathname === "/api/desktop-login") {
+    const expected = environment.XIANGYING_DESKTOP_TOKEN;
+    const token = url.searchParams.get("token") ?? "";
+    if (!expected || !constantTimeEqual(expected, token))
+      return jsonError(404, "NOT_FOUND", "未找到");
+    delete environment.XIANGYING_DESKTOP_TOKEN;
+    const credentials = getAuthCredentials(environment);
+    if (!credentials) return jsonError(503, "AUTH_NOT_CONFIGURED", "登录配置不可用");
+    const user = await ensureEnvironmentUser(database, credentials, options.realtime);
+    const session = createOpaqueToken();
+    const createdAt = now();
+    database
+      .query(
+        "INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+      )
+      .run(await digestHex(session), user.id, createdAt, createdAt + SESSION_TTL);
+    pruneUserSessions(database, user.id);
+    const headers = new Headers({
+      Location: "/app",
+      "Cache-Control": "no-store",
+      "Referrer-Policy": "no-referrer",
+    });
+    setSessionCookie(headers, request, session, environment, SESSION_COOKIE_TTL, clientAddress);
+    return new Response(null, { status: 303, headers });
+  }
+
   if (method === "GET" && url.pathname === "/api/health") {
     first(database, "SELECT 1 AS ok");
     const version = first<{ user_version: number }>(database, "PRAGMA user_version");

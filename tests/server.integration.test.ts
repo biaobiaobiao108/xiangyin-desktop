@@ -3389,6 +3389,33 @@ describe("Bun Server API", () => {
     expect(blocked.response.headers.get("Retry-After")).toBeTruthy();
   });
 
+  test("desktop login requires a one-time token", async () => {
+    const desktopEnvironment = { ...environment, XIANGYING_DESKTOP_TOKEN: "secret-token" };
+    const invalid = await request(
+      "/api/desktop-login?token=wrong",
+      {},
+      undefined,
+      desktopEnvironment,
+    );
+    expect(invalid.response.status).toBe(404);
+    const login = await request(
+      "/api/desktop-login?token=secret-token",
+      {},
+      undefined,
+      desktopEnvironment,
+    );
+    expect(login.response.status).toBe(303);
+    expect(login.response.headers.get("location")).toBe("/app");
+    expect(login.cookie).toMatch(/^xiangying_session=/);
+    expect((await request("/api/me", {}, login.cookie, desktopEnvironment)).response.status).toBe(
+      200,
+    );
+    expect(
+      (await request("/api/desktop-login?token=secret-token", {}, undefined, desktopEnvironment))
+        .response.status,
+    ).toBe(404);
+  });
+
   test("automatically signs in with the development test account", async () => {
     const devEnvironment = {
       ...environment,

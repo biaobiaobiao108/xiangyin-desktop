@@ -93,6 +93,12 @@ Markdown 中引用的外站图片默认不会自动加载。需要查看时，�
 
 ## 快速开始
 
+### Windows 桌面版
+
+在 Windows 上安装 Bun 和 Go 1.27.4 后，在项目目录运行 `bun install --frozen-lockfile` 和 `bun run build:desktop`。打开 `dist/xiangyin-desktop/象映笔记.exe` 即可使用；分发时请保留整个 `xiangyin-desktop` 文件夹。应用使用 Windows WebView2，本地服务仅监听 127.0.0.1:39093，端口被占用时无法启动。
+
+数据库、图片和桌面登录密钥保存在 `%APPDATA%\XiangyinNotes`。更新应用时保留此目录；备份时先退出应用并一同备份该目录。桌面版使用自己的本地数据库，不会自动连接已有的服务器或同步其笔记。
+
 最简单的长期使用方式是用 Docker 在自己的服务器或 NAS 上运行。先在项目目录创建 `.env`：
 
 ```dotenv
