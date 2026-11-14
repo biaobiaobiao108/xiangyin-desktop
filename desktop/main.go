@@ -10,10 +10,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
-	"syscall"
 	"time"
-	"unsafe"
 
 	"github.com/egoist/mygo"
 )
@@ -24,6 +23,9 @@ func run() error {
 		return err
 	}
 	root := filepath.Dir(exe)
+	if runtime.GOOS == "darwin" {
+		root = filepath.Clean(filepath.Join(root, "..", "Resources"))
+	}
 	data, err := os.UserConfigDir()
 	if err != nil {
 		return err
@@ -56,9 +58,13 @@ func run() error {
 	}
 	port := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
-	server := exec.Command(filepath.Join(root, "server.exe"))
+	serverName := "server"
+	if runtime.GOOS == "windows" {
+		serverName += ".exe"
+	}
+	server := exec.Command(filepath.Join(root, "backend", serverName))
 	server.Dir = root
-	server.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	configureServer(server)
 	for _, entry := range os.Environ() {
 		key, _, _ := strings.Cut(entry, "=")
 		key = strings.ToUpper(key)
@@ -98,12 +104,19 @@ func run() error {
 		return fmt.Errorf("后端启动失败，请查看 %s", logFile.Name())
 	}
 	mygo.App.WhenReady(func() {
-		mygo.NewWindow(mygo.WindowOptions{Title: "象映笔记", URL: base + "/api/desktop-login?token=" + token, Width: 1280, Height: 820, MinWidth: 760, MinHeight: 520})
+		window := mygo.NewWindow(mygo.WindowOptions{Title: "象映笔记", URL: base + "/api/desktop-login?token=" + token, Width: 1280, Height: 820, MinWidth: 760, MinHeight: 520, TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 40})
+		if icon, err := os.ReadFile(filepath.Join(root, "client", "icon-192.png")); err == nil {
+			if err := window.SetIcon(icon); err != nil {
+				fmt.Fprintln(logFile, "设置窗口图标失败:", err)
+			}
+		} else {
+			fmt.Fprintln(logFile, "读取窗口图标失败:", err)
+		}
 	})
 	return mygo.App.Run()
 }
 func main() {
 	if err := run(); err != nil {
-		syscall.NewLazyDLL("user32.dll").NewProc("MessageBoxW").Call(0, uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(err.Error()))), uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr("象映笔记"))), 0x10)
+		showError(err)
 	}
 }

@@ -26,15 +26,15 @@
 - 每个完成的代码改动集都必须提交，包括重构、维护类改动和小修复，不限于新功能或 bug 修复。
 - 提交标题使用中文，并按 `feat:`、`fix:`、`docs:`、`test:`、`chore:` 或 `ci:` 分类。
 
-- 本地不需要构建 Docker 镜像；由 CI 负责。
+- 桌面发布包由 tag 触发的 CI 构建。
 
 ## 运行与部署
 
 - 生产后端使用标准 `Request` / `Response` 和 `Bun.serve`；不要引入 Cloudflare Worker、D1、KV、Hono 或 Wrangler。
-- 数据库默认位于 `./data/xiangying-notes.sqlite`，Docker 中为 `/data/xiangying-notes.sqlite`，通过 volume 持久化。
+- 服务端默认数据库位于 `./data/xiangying-notes.sqlite`；桌面版使用用户数据目录。
 - 登录凭据只通过运行时环境变量 `XIANGYING_USERNAME`、`XIANGYING_PASSWORD` 注入，不写入代码、镜像或日志。
 - 仅在 HTTPS 反向代理场景设置 `COOKIE_SECURE=true`；本地 HTTP 使用 `false`。
-- 保持现有多阶段 Bun 镜像、CI 检查和 amd64/arm64 发布流程；最终镜像不包含源码、测试、开发依赖、凭据或数据库文件。
+- 桌面版发布使用 MyGo，构建 Windows amd64 和 macOS arm64；发布包不包含源码、测试、开发依赖、凭据或数据库文件。
 
 ## 前端约束
 
